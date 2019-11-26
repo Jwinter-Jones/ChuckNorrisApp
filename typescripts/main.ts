@@ -38,10 +38,37 @@ function fetchJoke(){
     let request = new XMLHttpRequest();
     request.onreadystatechange = handleJokeResponse;
 
+    let url = "http://api.icndb.com/jokes/random";
+    if(isCategorySelected()){
+        let category = getSelectedCategory();
+        // .../jokes/random?limitTo=[nerdy]
+        url += "?limitTo=[" + category + "]";
+    }
+    console.log(url);
     // Set URL to send request to
-    request.open("GET", "http://api.icndb.com/jokes/random");
+    request.open("GET", url);
     // Initiate request
     request.send();
+}
+
+function isCategorySelected():boolean{
+    let list = <HTMLSelectElement>document.getElementById("cat-list");
+    if(list.selectedIndex == 0)
+        return false;
+    
+    return true;
+}
+
+/**
+ * Return the single category that
+ * is selected
+ */
+function getSelectedCategory():string{
+    let list = <HTMLSelectElement>document.getElementById("cat-list");
+    let index = list.selectedIndex;
+
+    let cat = list.options[index].text;
+    return cat;
 }
 
 function handleJokeResponse(){
@@ -111,11 +138,23 @@ function populateCategories(){
 
     request.onreadystatechange = function(){
         // request.readyState == 4
+        // request has finished (4) successfully (200)
         if(this.readyState == 4 && this.status == 200){
             let categories:string[] = JSON.parse(this.responseText).value;
             console.log(categories);
+            populateCatDropdown(categories);
         }
     }
 
     request.send();
+}
+
+function populateCatDropdown(categories:string[]):void{
+    let list = document.getElementById("cat-list");
+
+    for(let i = 0; i < categories.length; i++){
+        let option = document.createElement("option")
+        option.text = categories[i];
+        list.appendChild(option); // add <option> to the <select>
+    }
 }
